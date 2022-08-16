@@ -1,94 +1,127 @@
 #include "deck.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
 /**
- * get_val - gets the relative value of a card from it's string value
- * @str: string value of the card
+ * _strcmp - Compares two strings
  *
- * Return: relative value of the card (0 through 12)
+ * @s1: string 1
+ * @s2: string 2
+ *
+ * Return: 0 if equal
  */
-int get_val(const char *str)
+int _strcmp(char *s1, const char *s2)
 {
-	int i;
-	char *array[13] = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9",
-			"10", "Jack", "Queen", "King"};
-
-	for (i = 0; i < 13; i++)
+	while (*s1 != '\0')
 	{
-		if (strcmp(str, array[i]) == 0)
-		{
-			return (i);
-		}
+		if (*s2 == '\0')
+			return (*s1);
+		if (*s2 > *s1)
+			return (*s1 - *s2);
+		if (*s1 > *s2)
+			return (*s1 - *s2);
+		s1++;
+		s2++;
 	}
-	exit(1);
+	if (*s2 != '\0')
+		return (*s2);
+	return (0);
 }
-
 /**
- * swap_node - swaps a node with the next node in the list
- * @list: double pointer to the beginning of the list
- * @node: node to swap
+ * _swap - Swaps two nodes of doubly linked list
  *
- * Return: void
+ * @node: node base to change
+ * @deck: double link list head
+ *
+ * Return: No Return
  */
-void swap_node(deck_node_t **list, deck_node_t *node)
+void _swap(deck_node_t **node, deck_node_t **deck)
 {
-	node->next->prev = node->prev;
-	if (node->prev)
-		node->prev->next = node->next;
-	else
-		*list = node->next;
-	node->prev = node->next;
-	node->next = node->next->next;
-	node->prev->next = node;
-	if (node->next)
-		node->next->prev = node;
-}
+	deck_node_t *tmp = *node, *tmp2, *tmp3;
 
+	if (!(*node)->prev)
+		*deck = (*node)->next;
+
+	tmp = tmp3 = *node;
+	tmp2 = tmp->next;
+
+	tmp->next = tmp2->next;
+	tmp3 = tmp->prev;
+	tmp->prev = tmp2;
+	tmp2->next = tmp;
+	tmp2->prev = tmp3;
+
+	if (tmp2->prev)
+		tmp2->prev->next = tmp2;
+
+
+	if (tmp->next)
+		tmp->next->prev = tmp;
+
+	*node = tmp2;
+}
 /**
- * sort_deck - sorts a linked list deck of cards
- * @deck: double pointer to the deck to sort
+ * CardValue - Obtains poker card Value from node
  *
- * Return: void
+ * @cardNode: node of poker card
+ *
+ * Return: Value between 1 and 52
+ */
+int CardValue(deck_node_t *cardNode)
+{
+	char *cardnum[13] = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+			     "Jack", "Queen", "King"};
+	int value, i;
+	const char *cnum;
+
+	cnum = cardNode->card->value;
+	for (i = 0; i < 13;  i++)
+		if (!_strcmp(cardnum[i], cnum))
+		{
+			i++;
+			break;
+		}
+
+	value = i + (cardNode->card->kind) * 13;
+
+	return (value);
+}
+/**
+ * sort_deck - sorts a poker cards deck
+ *
+ * @deck: doubly linked list
+ *
+ * Return: No Return
  */
 void sort_deck(deck_node_t **deck)
 {
-	char swapped = 1, c1, c2;
-	deck_node_t *current;
+	deck_node_t *head, *tback, *aux;
 
-	if (deck == NULL || *deck == NULL || (*deck)->next == NULL)
+	if (!deck || !(*deck) || (!((*deck)->prev) && !((*deck)->next)))
 		return;
-	current = *deck;
-	while (swapped != 0)
+
+	head = *deck;
+	while (head && head->next)
 	{
-		swapped = 0;
-		while (current->next != NULL)
+		if (CardValue(head) > CardValue(head->next))
 		{
-			c1 = get_val(current->card->value) + 13 * current->card->kind;
-			c2 = get_val(current->next->card->value) + 13 * current->next->card->kind;
-			if (c1 > c2)
+			aux = head;
+
+			_swap(&aux, deck);
+			head = aux;
+			tback = aux;
+
+			while (tback && tback->prev)
 			{
-				swap_node(deck, current);
-				swapped = 1;
+				if (CardValue(tback) < CardValue(tback->prev))
+				{
+					aux = tback->prev;
+
+					_swap(&(aux), deck);
+
+					tback = aux->next;
+				}
+
+				tback = tback->prev;
 			}
-			else
-				current = current->next;
 		}
-		if (swapped == 0)
-			break;
-		swapped = 0;
-		while (current->prev != NULL)
-		{
-			c1 = get_val(current->card->value) + 13 * current->card->kind;
-			c2 = get_val(current->prev->card->value) + 13 * current->prev->card->kind;
-			if (c1 < c2)
-			{
-				swap_node(deck, current->prev);
-				swapped = 1;
-			}
-			else
-				current = current->prev;
-		}
+		head = head->next;
 	}
 }
