@@ -1,58 +1,83 @@
 #include "sort.h"
+
 /**
- * insertion_sort_list - sort a dlist via insertion sort
- * @list: the list to sort
+ * _swap - Swaps two nodes of doubly linked list
  *
+ * @node: node base to change
+ * @list: double link list head
  *
+ * Return: No Return
+ */
+void _swap(listint_t **node, listint_t **list)
+{
+	listint_t *tmp = *node, *tmp2, *tmp3;
+
+	if (!(*node)->prev)
+		*list = (*node)->next;
+
+	tmp = tmp3 = *node;
+	tmp2 = tmp->next;
+
+	tmp->next = tmp2->next;
+	tmp3 = tmp->prev;
+	tmp->prev = tmp2;
+	tmp2->next = tmp;
+	tmp2->prev = tmp3;
+
+	if (tmp2->prev)
+		tmp2->prev->next = tmp2;
+
+
+	if (tmp->next)
+		tmp->next->prev = tmp;
+
+	*node = tmp2;
+
+}
+/**
+ * insertion_sort_list - sorts a doubly linked list of integers
+ * in ascending order using the Insertion sort algorithm
+ *
+ * @list: doubly linked list
+ *
+ * Return: No Return
  */
 void insertion_sort_list(listint_t **list)
 {
-	/* declarations */
-	listint_t *a, *b;
+	listint_t  *head, *tback, *aux;
 
-	/* check for bad things */
-	if (!(list && *list && (*list)->next))
+	if (!list || !(*list) || (!((*list)->prev) && !((*list)->next)))
 		return;
 
-	/* set up for some insertion sort & swap */
-	a = (*list)->next;
-
-	while (a)
+	head = *list;
+	while (head && head->next)
 	{
-		b = a;
-		a = a->next;
-		while (b && b->prev)
+		if (head->n > head->next->n)
 		{
-			if (b->prev->n > b->n)
+			aux = head;
+
+			_swap(&aux, list);
+			print_list(*list);
+			head = aux;
+			tback = aux;
+
+			while (tback && tback->prev)
 			{
-				swapper(b->prev, b);
-				if (!b->prev)
-					*list = b;
-				/* cast to const for print func */
-				print_list((const listint_t *)*list);
+
+				if (tback->n < tback->prev->n)
+				{
+					aux = tback->prev;
+
+					_swap(&(aux), list);
+
+					print_list(*list);
+					tback = aux->next;
+				}
+
+				tback = tback->prev;
 			}
-			else
-				b = b->prev;
+
 		}
+		head = head->next;
 	}
-
-}
-
-
-/**
- * swapper - a function to help swap 2 nodes in a dlist
- * @a: one node
- * @b: the other node
- *
- */
-void swapper(listint_t *a, listint_t *b)
-{
-	if (a->prev)
-		a->prev->next = b;
-	if (b->next)
-		b->next->prev = a;
-	a->next = b->next;
-	b->prev = a->prev;
-	a->prev = b;
-	b->next = a;
 }
