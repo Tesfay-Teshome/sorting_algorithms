@@ -1,80 +1,93 @@
 #include "sort.h"
-/**
- * swaps - swaps and prints ints from an array without temp
- * @array: the array for printing func
- * @size: the size of array for printing func
- * @a: one int
- * @b: the other int
- */
-void swaps(int *array, size_t size, int *a, int *b)
-{
-	if (*a != *b)
-	{
-		*a = *a + *b;
-		*b = *a - *b;
-		*a = *a - *b;
-		print_array((const int *)array, size);
-	}
-}
-/**
- * kwiksort - quick sort via lamuto partition
- * @array: the array
- * @size: size of array
- * @low: low [] of sort
- * @high: high [] of sort
- *
- */
-void kwiksort(int *array, size_t size, ssize_t low, ssize_t high)
-{
-	if (low < high)
-	{
-		size_t part = partition(array, size, low, high);
+#include <stdio.h>
 
-		kwiksort(array, size, low, part - 1);
-		kwiksort(array, size, part + 1, high);
+/**
+ * _swap - swaps two values in an array
+ *
+ * @array: data to sort
+ * @i: first value
+ * @j: second value
+ * @size: size of data
+ *
+ * Return: No Return
+ */
+void _swap(int *array, int i, int j, int size)
+{
+	int tmp;
+
+	if (array[i] != array[j])
+	{
+		tmp = array[i];
+		array[i] = array[j];
+		array[j] = tmp;
+		print_array(array, size);
 	}
 }
 
 /**
- * quick_sort - to quick sort, basically a junk func prototype i had to
- * embetter
- * @array: the array to sort
- * @size: size of array
+ * partition - sorts a partition of data in relation to a pivot
  *
+ * @array: data to sort
+ * @min: Left wall
+ * @max: right wall
+ * @size: size of data
+ *
+ * Return: New Pivot
  */
-void quick_sort(int *array, size_t size)
+int partition(int *array, int min, int max, size_t size)
 {
-	/* if bad things, return */
-	if (!array || !size)
-		return;
-	/* else, sort it baby */
-	kwiksort(array, size, 0, size - 1);
-}
-/**
- * partition - "partition" array
- * @array: the array
- * @size: the size of array
- * @low: the bottom of the index
- * @high: the top of it
- * Return: size_t part, the partition value
- */
-size_t partition(int *array, size_t size, ssize_t low, ssize_t high)
-{
-	/*declarations */
-	int i, j, pivot;
+	int i = min, j, pivot  = array[max];
 
-	/* set the pivot */
-	pivot = array[high];
-
-	for (j = low, i = j; j < high; j++)
+	for (j = min; j <= max; j++)
 	{
 		if (array[j] < pivot)
 		{
-			swaps(array, size, &array[j], &array[i++]);
+			_swap(array, i, j, size);
+			i++;
 		}
+
 	}
-	/* final swap */
-	swaps(array, size, &array[i], &array[high]);
-	/* the size_t return value here is needed for the part */
+	_swap(array, i, max, size);
+
 	return (i);
+}
+
+/**
+ * quicksort -  sorts an array of integers in ascending order using the
+ * Quick sort algorithm Lomuto partition scheme
+ *
+ * @array: data to sort
+ * @min: Left wall
+ * @max: right wall
+ * @size: size of data
+ *
+ * Return: No Return
+ */
+void quicksort(int *array, int min, int max, size_t size)
+{
+	int p;
+
+	if (min < max)
+	{
+		p = partition(array, min, max, size);
+		quicksort(array, min, p - 1, size);
+		quicksort(array, p + 1, max, size);
+	}
+}
+
+/**
+ * quick_sort -  sorts an array of integers in ascending order using the
+ * Quick sort algorithm Lomuto partition scheme
+ *
+ * @array: data to sort
+ * @size: size of data
+ *
+ * Return: No Return
+ */
+void quick_sort(int *array, size_t size)
+{
+	if (size < 2)
+		return;
+
+	quicksort(array, 0, size - 1, size);
 }
