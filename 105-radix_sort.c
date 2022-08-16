@@ -1,73 +1,101 @@
+#include <stdlib.h>
 #include "sort.h"
-
 /**
-* findmax - Finds the maximum value in an array
-* @array: array to find max value of
-* @size: Size of array
-* Return: Largest value
-*/
-
-int findmax(int *array, size_t size)
+ * csort2 - auxiliary function of radix sort
+ *
+ * @array: array of data to be sorted
+ * @buff: malloc buffer
+ * @size: size of data
+ * @lsd: Less significant digit
+ *
+ * Return: No Return
+ */
+void csort2(int *array, int **buff, int size, int lsd)
 {
-	int i, max = 0;
+	int i, j, csize = 10, num;
+	int carr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int carr2[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-	for (i = 0; i < (int)size; i++)
+	for (i = 0; i < size; i++)
 	{
-		if (max < array[i])
-			max = array[i];
+		num = array[i];
+		for (j = 0; j < lsd; j++)
+			if (j > 0)
+				num = num / 10;
+		num = num % 10;
+		buff[num][carr[num]] = array[i];
+		carr[num] += 1;
 	}
-	return (max);
+
+	for (i = 0, j = 0; i < csize; i++)
+	{
+		while (carr[i] > 0)
+		{
+			array[j] = buff[i][carr2[i]];
+			carr2[i] += 1, carr[i] -= 1;
+			j++;
+		}
+	}
+
+	print_array(array, size);
 }
-
 /**
-* radix_sort - Sorts an array using radix sort algo
-* @array: Array to sort
-* @size: size of array
-*/
+ * csort - auxiliary function of radix sort
+ *
+ * @array: array of data to be sorted
+ * @size: size of data
+ * @lsd: Less significant digit
+ *
+ * Return: No Return
+ */
+void csort(int *array, int size, int lsd)
+{
+	int carr[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	int i, j, num, csize = 10, **buff;
 
+	for (i = 0; i < size; i++)
+	{
+		num = array[i];
+		for (j = 0; j < lsd; j++)
+			if (j > 0)
+				num = num / 10;
+		num = num % 10;
+		carr[num] += 1;
+	}
+
+	if (carr[0] == size)
+		return;
+
+	buff = malloc(sizeof(int *) * 10);
+	if (!buff)
+		return;
+
+	for (i = 0; i < csize; i++)
+		if (carr[i] != 0)
+			buff[i] = malloc(sizeof(int) * carr[i]);
+
+
+	csort2(array, buff, size, lsd);
+
+	csort(array, size, lsd + 1);
+
+	for (i = 0; i < csize; i++)
+		if (carr[i] > 0)
+			free(buff[i]);
+	free(buff);
+}
+/**
+ * radix_sort - sorts an array of integers in ascending order using the Radix
+ * sort algorithm
+ *
+ * @array: array of data to be sorted
+ * @size: size of data
+ *
+ * Return: No Return
+ */
 void radix_sort(int *array, size_t size)
 {
-	int m, pos, *out, *ca;
-
-	if (array == NULL || size < 2)
+	if (size < 2)
 		return;
-	m = findmax(array, size);
-	out = malloc(sizeof(int) * (int)size);
-	ca = malloc(sizeof(int) * (10));
-	if (ca == NULL || out == NULL)
-		return;
-	for (pos = 1; m / pos > 0; pos *= 10)
-		counting_sort_r(array, size, pos, out, ca), print_array(array, size);
-	free(out);
-	free(ca);
-}
-
-/**
-* counting_sort_r - sorts array using counting algorithm
-* @array: Array to sort
-* @size: Size of array
-* @pos: Digit position value
-* @out: Temp output array
-* @ca: Count array
-*/
-
-void counting_sort_r(int *array, size_t size, int pos, int *out, int *ca)
-{
-	int i;
-
-	if (array == NULL || size < 2)
-		return;
-	for (i = 0; i < 10; i++)
-		ca[i] = 0;
-	for (i = 0; i < (int)size; i++)
-		ca[((array[i] / pos) % 10)] += 1;
-	for (i = 0; i < 10; i++)
-		ca[i] += ca[i - 1];
-	for (i = size - 1; i >= 0; i--)
-	{
-		out[ca[((array[i] / pos) % 10)] - 1] = array[i];
-		ca[((array[i] / pos) % 10)] -= 1;
-	}
-	for (i = 0; i < (int)size; i++)
-		array[i] = out[i];
+	csort(array, size, 1);
 }
